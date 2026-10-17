@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rituel – suivi d’habitudes</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f8f86">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rituel">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#eef3f0;--surface:#ffffff;--ink:#12302e;--muted:#5d7774;--line:#d5e1dd;
+  --accent:#0f8f86;--accent-ink:#ffffff;--sun:#f2a516;--danger:#c4402f;
+  --l1:#cfeee6;--l2:#8fd8c7;--l3:#3fb5a2;--l4:#0f8f86;--l1t:#12302e;--l2t:#12302e;--l3t:#ffffff;--l4t:#ffffff;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1b1a;--surface:#142928;--ink:#e6f2ef;--muted:#8fb0ab;--line:#244240;
+  --accent:#2fc4b8;--accent-ink:#06211f;--sun:#f6b93b;--danger:#ff7b69;
+  --l1:#1c4743;--l2:#1f6e66;--l3:#25998f;--l4:#2fc4b8;--l1t:#e6f2ef;--l2t:#e6f2ef;--l3t:#06211f;--l4t:#06211f;}}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+h1,h2,h3,.name{font-family:ui-rounded,"SF Pro Rounded","Avenir Next",system-ui,sans-serif}
+h1,h2,h3{margin:0}
+.app{max-width:480px;margin:0 auto;padding:20px 16px calc(150px + env(safe-area-inset-bottom,0px))}
+header{padding:12px 4px 18px}
+.date{color:var(--muted);font-size:14px;text-transform:capitalize}
+h1{font-size:34px;line-height:1.05;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+.bar{height:10px;border-radius:99px;background:var(--line);margin-top:16px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .35s ease}
+.sub{font-size:14px;color:var(--muted);margin-top:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:12px}
+.check{flex:none;width:54px;height:54px;border-radius:50%;border:3px solid var(--line);background:transparent;display:grid;place-items:center;font-size:24px;cursor:pointer;transition:background .2s,transform .15s;color:var(--accent-ink)}
+.check:active{transform:scale(.92)}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.info{flex:1;min-width:0}
+.name{font-weight:700;font-size:19px;overflow-wrap:anywhere}
+.streak{font-size:13px;color:var(--muted)}
+.streak .hot{color:var(--sun);font-weight:700}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--line);color:var(--muted);margin-right:6px}
+.card.locked{background:var(--bg);border-style:dashed}
+.card.locked .name{color:var(--muted)}
+.card.locked .check{background:var(--line);border-color:var(--line);color:var(--muted);cursor:default;transform:none}
+.card.locked .check.on{background:var(--line)}
+.del{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:8px;cursor:pointer;border-radius:10px}
+.del.sure{color:var(--danger);font-weight:700}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+.wd{text-align:center;color:var(--muted);font-size:12px}
+.wd.today{color:var(--ink);font-weight:700}
+.wd span{display:grid;place-items:center;width:100%;aspect-ratio:1;max-width:40px;margin:4px auto 0;border-radius:12px;background:var(--bg);border:1px solid var(--line);font-size:14px}
+.wd.on span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.empty{text-align:center;color:var(--muted);padding:40px 12px}
+.empty b{display:block;color:var(--ink);font-size:20px;margin-bottom:6px}
+.fab{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(78px + env(safe-area-inset-bottom,0px));border:0;background:var(--ink);color:var(--bg);font:700 16px system-ui,sans-serif;padding:15px 20px;border-radius:99px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.22);z-index:5}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:10}
+.tabs nav{max-width:480px;margin:0 auto;display:flex}
+.tab{flex:1;border:0;background:none;color:var(--muted);font:600 12px system-ui,sans-serif;padding:10px 0 9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--accent)}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-head h2{font-size:22px;text-transform:capitalize}
+.nav{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:20px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.gh{text-align:center;font-size:12px;color:var(--muted);padding-bottom:2px}
+.cd{aspect-ratio:1;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 15px system-ui,sans-serif;cursor:pointer;padding:0}
+.cd.l1{background:var(--l1);color:var(--l1t);border-color:transparent}
+.cd.l2{background:var(--l2);color:var(--l2t);border-color:transparent}
+.cd.l3{background:var(--l3);color:var(--l3t);border-color:transparent}
+.cd.l4{background:var(--l4);color:var(--l4t);border-color:transparent}
+.cd.fut{opacity:.45}
+.cd.today{box-shadow:0 0 0 2px var(--sun)}
+.cd.sel{outline:3px solid var(--ink);outline-offset:1px}
+.cd.void{visibility:hidden}
+.legend{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.legend div{text-align:center;font-size:11px;color:var(--muted)}
+.legend i{display:block;width:28px;height:18px;border-radius:6px;border:1px solid var(--line);background:var(--surface);margin-bottom:3px}
+.legend .l1 i{background:var(--l1)}.legend .l2 i{background:var(--l2)}.legend .l3 i{background:var(--l3)}.legend .l4 i{background:var(--l4)}
+.detail h3{font-size:17px;text-transform:capitalize}
+.detail .ln{display:flex;gap:10px;padding:6px 0;font-size:15px}
+.detail .ln.no{color:var(--muted)}
+.big{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.gr{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+.gr:first-child{border-top:0}
+.gr .e{font-size:26px;width:36px;text-align:center}
+.gr.lock{color:var(--muted)}.gr.lock .e{filter:grayscale(1);opacity:.5}
+.gr .m{margin-left:auto;font-size:13px}
+.sh{font-size:18px;margin:20px 4px 10px}
+.sheet{position:fixed;inset:0;background:rgba(5,20,19,.5);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.sheet.open{display:flex}
+.panel{background:var(--surface);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom,0px))}
+.panel h2{font-size:24px;margin-bottom:6px}
+label{display:block;font-size:14px;color:var(--muted);margin:12px 0 6px}
+input[type=text]{width:100%;font:inherit;font-size:17px;padding:14px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.emojis{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;max-height:176px;overflow-y:auto;padding:2px}
+.emojis button{aspect-ratio:1;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);font-size:22px;cursor:pointer;padding:0}
+.emojis button.sel{border-color:var(--accent);background:var(--accent)}
+.actions{display:flex;gap:10px;margin-top:18px}
+.actions button{flex:1;font:700 16px system-ui,sans-serif;padding:15px;border-radius:14px;border:0;cursor:pointer}
+.save{background:var(--accent);color:var(--accent-ink)}
+.cancel{background:var(--bg);color:var(--ink)}
+.err{color:var(--danger);font-size:13px;min-height:18px;margin-top:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="view"></div>
+<button class="fab" id="add">+ Nouvelle habitude</button>
+<div class="tabs"><nav>
+  <button class="tab" data-tab="rituels"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>Rituels</button>
+  <button class="tab" data-tab="calendrier"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendrier</button>
+  <button class="tab" data-tab="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>Stats</button>
+</nav></div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="st">
+  <div class="panel">
+    <h2 id="st">Nouvelle habitude</h2>
+    <label for="nm">Nom</label>
+    <input type="text" id="nm" maxlength="40" placeholder="Boire 2 litres d’eau" autocomplete="off">
+    <label>Icône</label>
+    <div class="emojis" id="emojis"></div>
+    <div class="err" id="err"></div>
+    <div class="actions">
+      <button class="cancel" id="cancel">Annuler</button>
+      <button class="save" id="save">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY="rituel-habitudes-v1";
+  var EMOJIS=["💧","🏃","📖","🧘","😴","🥗","✍️","💪","🚭","🎸","🍎","🚴","🏊","🧠","🎨","🎹","🧹","🛏️","🦷","☀️","🌙","🙏","💊","📵","🚶","🧴","🍵","📞","💻","🌱","🐕","💰","🧺","🥦","🏋️","🤸","🎯","📝","🚗","❤️"];
+  var GRADES=[
+    {n:"Débutant",min:0,e:"🌱"},{n:"Apprenti",min:3,e:"🪶"},{n:"Écuyer",min:7,e:"🛡️"},
+    {n:"Chevalier",min:15,e:"⚔️"},{n:"Capitaine",min:30,e:"🏹"},{n:"Baron",min:60,e:"🏰"},
+    {n:"Maître",min:100,e:"👑"},{n:"Légende",min:200,e:"🐉"}
+  ];
+  var WD=["D","L","M","M","J","V","S"];
+  var habits=[],tab="rituels",pendingDelete=null,chosen=EMOJIS[0];
+  var now=new Date(),vy=now.getFullYear(),vm=now.getMonth(),sel=null;
+
+  function pad(n){return n<10?"0"+n:""+n}
+  function keyOf(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+  function daysAgo(n){var d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-n);return d}
+  function todayKey(){return keyOf(daysAgo(0))}
+  function num(k){var p=k.split("-");return Date.UTC(+p[0],+p[1]-1,+p[2])/864e5}
+  function fromNum(n){var d=new Date(n*864e5);return d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1)+"-"+pad(d.getUTCDate())}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function load(){
+    try{var r=localStorage.getItem(KEY);if(r){var d=JSON.parse(r);if(Array.isArray(d))habits=d}}catch(e){habits=[]}
+    habits.forEach(function(h){
+      if(!h.done)h.done={};
+      if(!h.created){var ks=Object.keys(h.done).sort();h.created=ks.length?ks[0]:todayKey()}
+    });
+  }
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(habits))}catch(e){}}
+
+  function streak(h){
+    var n=0,i=0;
+    if(!h.done[todayKey()])i=1;
+    while(h.done[keyOf(daysAgo(i))]){n++;i++}
+    return n;
+  }
+  function best(h){
+    var ks=Object.keys(h.done).sort(),b=0,c=0,prev=null;
+    ks.forEach(function(k){var n=num(k);c=(prev!==null&&n===prev+1)?c+1:1;if(c>b)b=c;prev=n});
+    return b;
+  }
+  function dayInfo(k){
+    var ex=habits.filter(function(h){return h.created<=k});
+    var d=ex.filter(function(h){return h.done[k]});
+    return {ex:ex,t:ex.length,d:d.length};
+  }
+  function level(i){
+    if(!i.t||!i.d)return 0;
+    var r=i.d/i.t;
+    return r<=.25?1:r<=.5?2:r<1?3:4;
+  }
+  function perfectDays(){
+    if(!habits.length)return 0;
+    var min=habits.reduce(function(m,h){return h.created<m?h.created:m},"9999-99-99");
+    var c=0,end=num(todayKey());
+    for(var n=num(min);n<=end;n++){var i=dayInfo(fromNum(n));if(i.t&&i.d===i.t)c++}
+    return c;
+  }
+  function gradeOf(p){var g=GRADES[0];GRADES.forEach(function(x){if(p>=x.min)g=x});return g}
+
+  /* ---------- Rituels ---------- */
+  function viewRituels(){
+    var tk=todayKey(),done=habits.filter(function(h){return h.done[tk]}).length,total=habits.length;
+    var date=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+    var sub=total?(done===total?"Tout est fait pour aujourd’hui. Bravo !":done+" sur "+total+" faites aujourd’hui"):"Aucune habitude pour l’instant";
+    var html='<header><div class="date">'+date+'</div><h1>Tes rituels</h1><div class="bar"><i style="width:'+(total?Math.round(done/total*100):0)+'%"></i></div><div class="sub">'+sub+'</div></header>';
+    if(!total)return html+'<div class="empty"><b>Commence par une seule habitude</b>Choisis un geste simple que tu peux faire chaque jour, puis coche-le ici.</div>';
+    return html+habits.map(function(h){
+      var s=streak(h),ok=!!h.done[tk],isDel=pendingDelete===h.id,week="";
+      for(var i=6;i>=0;i--){
+        var d=daysAgo(i),k=keyOf(d),on=h.done[k];
+        week+='<div class="wd'+(on?" on":"")+(i===0?" today":"")+'">'+WD[d.getDay()]+'<span>'+(on?"✓":d.getDate())+'</span></div>';
+      }
+      var line=(ok?'<span class="pill">Accomplie</span>':'')+(s>=3?'<span class="hot">'+s+' jours d’affilée</span>':s>0?s+' jour'+(s>1?'s':'')+' d’affilée':(ok?'':'Pas de série en cours'));
+      return '<article class="card'+(ok?" locked":"")+'"><div class="row">'+
+        '<button class="check'+(ok?" on":"")+'"'+(ok?' disabled aria-label="« '+esc(h.name)+' » accomplie aujourd’hui"':' data-check="'+h.id+'" aria-label="Marquer « '+esc(h.name)+' » comme accomplie"')+'>'+(ok?"✓":esc(h.emoji))+'</button>'+
+        '<div class="info"><div class="name">'+esc(h.emoji)+' '+esc(h.name)+'</div><div class="streak">'+line+'</div></div>'+
+        '<button class="del'+(isDel?" sure":"")+'" data-del="'+h.id+'">'+(isDel?"Confirmer":"Supprimer")+'</button></div>'+
+        '<div class="week">'+week+'</div></article>';
+    }).join("");
+  }
+
+  /* ---------- Calendrier ---------- */
+  function viewCalendrier(){
+    var tk=todayKey(),first=new Date(vy,vm,1),off=(first.getDay()+6)%7,dim=new Date(vy,vm+1,0).getDate();
+    if(!sel)sel=tk;
+    var title=first.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+    var html='<div class="cal-head"><button class="nav" data-nav="-1" aria-label="Mois précédent">‹</button><h2>'+title+'</h2><button class="nav" data-nav="1" aria-label="Mois suivant">›</button></div><div class="grid">';
+    ["L","M","M","J","V","S","D"].forEach(function(l){html+='<div class="gh">'+l+'</div>'});
+    for(var i=0;i<off;i++)html+='<button class="cd void" tabindex="-1" aria-hidden="true"></button>';
+    for(var d=1;d<=dim;d++){
+      var k=vy+"-"+pad(vm+1)+"-"+pad(d),fut=k>tk,l=fut?0:level(dayInfo(k));
+      html+='<button class="cd'+(l?" l"+l:"")+(fut?" fut":"")+(k===tk?" today":"")+(k===sel?" sel":"")+'" data-day="'+k+'">'+d+'</button>';
+    }
+    html+='</div><div class="legend"><div><i></i>0</div><div class="l1"><i></i>¼</div><div class="l2"><i></i>½</div><div class="l3"><i></i>+ de ½</div><div class="l4"><i></i>100 %</div></div>';
+    var info=dayInfo(sel),label=new Date(num(sel)*864e5+43200000).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",timeZone:"UTC"});
+    html+='<div class="card detail"><h3>'+label+'</h3>';
+    if(sel>tk)html+='<div class="streak" style="margin-top:6px">Ce jour n’est pas encore arrivé.</div>';
+    else if(!info.t)html+='<div class="streak" style="margin-top:6px">Aucune habitude suivie ce jour-là.</div>';
+    else{
+      html+='<div class="streak">'+info.d+' sur '+info.t+' accomplie'+(info.d>1?"s":"")+'</div>';
+      html+=info.ex.map(function(h){var ok=h.done[sel];return '<div class="ln'+(ok?"":" no")+'"><span>'+(ok?"✓":"○")+'</span><span>'+esc(h.emoji)+' '+esc(h.name)+'</span></div>'}).join("");
+    }
+    return html+'</div>';
+  }
+
+  /* ---------- Stats ---------- */
+  function viewStats(){
+    var p=perfectDays(),g=gradeOf(p),next=null;
+    GRADES.forEach(function(x){if(!next&&x.min>p)next=x});
+    var html='<header><h1>Statistiques</h1></header>';
+    var pct=next?Math.round((p-g.min)/(next.min-g.min)*100):100;
+    html+='<div class="card"><div class="row"><div class="big">'+g.e+'</div><div><h2>'+g.n+'</h2><div class="streak">'+p+' jour'+(p>1?"s":"")+' à 100 %</div></div></div>'+
+      '<div class="bar"><i style="width:'+pct+'%"></i></div><div class="sub">'+(next?"Encore "+(next.min-p)+" jour"+(next.min-p>1?"s":"")+" à 100 % pour devenir "+next.n:"Grade maximum atteint")+'</div></div>';
+    var longest=null;
+    habits.forEach(function(h){var b=best(h);if(b&&(!longest||b>longest.b))longest={h:h,b:b}});
+    html+='<h3 class="sh">Plus long rituel</h3><div class="card">'+(longest?'<div class="row"><div class="big">'+esc(longest.h.emoji)+'</div><div><div class="name">'+esc(longest.h.name)+'</div><div class="streak">'+longest.b+' jour'+(longest.b>1?"s":"")+' d’affilée</div></div></div>':'<div class="streak">Coche une habitude pour lancer ton premier record.</div>')+'</div>';
+    html+='<h3 class="sh">Séries</h3><div class="card">';
+    if(!habits.length)html+='<div class="streak">Aucune habitude pour l’instant.</div>';
+    else html+=habits.slice().sort(function(a,b){return streak(b)-streak(a)}).map(function(h){
+      return '<div class="gr"><div class="e">'+esc(h.emoji)+'</div><div><div class="name" style="font-size:16px">'+esc(h.name)+'</div><div class="streak">Record : '+best(h)+' j</div></div><div class="m"><b>'+streak(h)+'</b> j en cours</div></div>';
+    }).join("");
+    html+='</div><h3 class="sh">Grades</h3><div class="card">'+GRADES.map(function(x){
+      var ok=p>=x.min;
+      return '<div class="gr'+(ok?"":" lock")+'"><div class="e">'+(ok?x.e:"🔒")+'</div><div class="name" style="font-size:16px">'+x.n+'</div><div class="m">'+(x.min?x.min+" jours à 100 %":"Départ")+'</div></div>';
+    }).join("")+'</div>';
+    return html;
+  }
+
+  function render(){
+    var v=document.getElementById("view");
+    v.innerHTML=tab==="rituels"?viewRituels():tab==="calendrier"?viewCalendrier():viewStats();
+    document.getElementById("add").style.display=tab==="rituels"?"":"none";
+    document.querySelectorAll(".tab").forEach(function(b){
+      var on=b.dataset.tab===tab;b.classList.toggle("on",on);
+      if(on)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");
+    });
+  }
+
+  document.querySelector(".tabs").addEventListener("click",function(e){
+    var b=e.target.closest(".tab");if(!b)return;
+    tab=b.dataset.tab;pendingDelete=null;window.scrollTo(0,0);render();
+  });
+  document.getElementById("view").addEventListener("click",function(e){
+    var t=e.target.closest("button");if(!t||t.disabled)return;
+    if(t.dataset.del){
+      if(pendingDelete===t.dataset.del){habits=habits.filter(function(h){return h.id!==t.dataset.del});pendingDelete=null;save()}
+      else pendingDelete=t.dataset.del;
+      render();return;
+    }
+    if(t.dataset.check){
+      var h=habits.find(function(x){return x.id===t.dataset.check});
+      if(h&&!h.done[todayKey()]){h.done[todayKey()]=true;save()}
+      pendingDelete=null;render();return;
+    }
+    if(t.dataset.nav){
+      vm+=+t.dataset.nav;
+      if(vm<0){vm=11;vy--}else if(vm>11){vm=0;vy++}
+      render();return;
+    }
+    if(t.dataset.day){sel=t.dataset.day;render()}
+  });
+
+  var sheet=document.getElementById("sheet"),nm=document.getElementById("nm"),err=document.getElementById("err");
+  function buildEmojis(){
+    document.getElementById("emojis").innerHTML=EMOJIS.map(function(em){
+      return '<button type="button" class="'+(em===chosen?"sel":"")+'" data-e="'+em+'" aria-label="Icône '+em+'">'+em+'</button>';
+    }).join("");
+  }
+  function openSheet(){nm.value="";err.textContent="";chosen=EMOJIS[0];buildEmojis();sheet.classList.add("open");setTimeout(function(){nm.focus()},50)}
+  function closeSheet(){sheet.classList.remove("open")}
+  document.getElementById("emojis").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;chosen=b.dataset.e;buildEmojis()});
+  function submit(){
+    var v=nm.value.trim();
+    if(!v){err.textContent="Donne un nom à ton habitude.";return}
+    habits.push({id:"h"+Date.now(),name:v,emoji:chosen,created:todayKey(),done:{}});
+    save();closeSheet();render();
+  }
+  document.getElementById("add").addEventListener("click",openSheet);
+  document.getElementById("cancel").addEventListener("click",closeSheet);
+  document.getElementById("save").addEventListener("click",submit);
+  nm.addEventListener("keydown",function(e){if(e.key==="Enter")submit();if(e.key==="Escape")closeSheet()});
+  sheet.addEventListener("click",function(e){if(e.target===sheet)closeSheet()});
+
+  load();render();
+  if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+})();
+</script>
+</body>
+</html>
